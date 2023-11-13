@@ -6,7 +6,7 @@
 
 void logexit(const char *msg);
 //void usage(int argc, char **argv);
-//void usage(int argc, char **argv, int n);
+void usage(int argc, char **argv, int n);
 
 int addrparse(const char *addrstr, const char *portstr,
               struct sockaddr_storage *storage);

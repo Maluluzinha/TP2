@@ -10,52 +10,19 @@ void logexit(const char *msg) {
 	exit(EXIT_FAILURE);
 }
 
-// void usage(int argc, char **argv) {
-//     // if (n == 0) {
-//         printf("usage: %s <v4|v6> <server port>\n", argv[0]);
-//         printf("example: %s 51511\n", argv[0]);
-//          exit(EXIT_FAILURE);
-//     // } else {
-//         // printf("usage: %s <v4> <server IP> <server port>\n", argv[0]);
-//         // printf("example: %s 127.0.0.1 51511\n", argv[0]);
-//         // exit(EXIT_FAILURE);
-//    // }
-// }
-
-void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
-    int version;
-    char addrstr[INET6_ADDRSTRLEN + 1] = "";
-    uint16_t port;
-
-    if (addr->sa_family == AF_INET) {
-        version = 4;
-        struct sockaddr_in *addr4 = (struct sockaddr_in *)addr;
-        if (!inet_ntop(AF_INET, &(addr4->sin_addr), addrstr,
-                       INET6_ADDRSTRLEN + 1)) {
-            logexit("ntop");
-        }
-        port = ntohs(addr4->sin_port); // network to host short
-    } 
-    // else if (addr->sa_family == AF_INET6) {
-    //     version = 6;
-    //     struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)addr;
-    //     if (!inet_ntop(AF_INET6, &(addr6->sin6_addr), addrstr,
-    //                    INET6_ADDRSTRLEN + 1)) {
-    //         logexit("ntop");
-    //     }
-    //     port = ntohs(addr6->sin6_port); // network to host short
-    // } 
-    else {
-        logexit("unknown protocol family.");
-    }
-    if (str) {
-        snprintf(str, strsize, "IPv%d %s %hu", version, addrstr, port);
+void usage(int argc, char **argv, int n) {
+    if (n == 0) {
+        //Simples
+        printf("usage: %s <v4> <server port>\n", argv[0]);
+        printf("example: %s 51511\n", argv[0]);
+        exit(EXIT_FAILURE);
+    } else {
+        printf("usage: %s <v4> <server IP> <server port> <peer port> \n", argv[0]);
+        printf("example: %s 127.0.0.1 51511 \n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 }
 
-////////////////////////////////////////////
-
-//Parse do cliente:
 int addrparse(const char *addrstr, const char *portstr,
               struct sockaddr_storage *storage) {
     if (addrstr == NULL || portstr == NULL) {
@@ -90,7 +57,41 @@ int addrparse(const char *addrstr, const char *portstr,
     return -1;
 }
 
-//Inicio do servidor:
+//Manutenção do servidor
+void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
+    int version;
+    char addrstr[INET6_ADDRSTRLEN + 1] = "";
+    uint16_t port;
+
+    if (addr->sa_family == AF_INET) {
+        version = 4;
+        struct sockaddr_in *addr4 = (struct sockaddr_in *)addr;
+        if (!inet_ntop(AF_INET, &(addr4->sin_addr), addrstr,
+                       INET6_ADDRSTRLEN + 1)) {
+            logexit("ntop");
+        }
+        port = ntohs(addr4->sin_port); // network to host short
+    } 
+
+    // else if (addr->sa_family == AF_INET6) {
+    //     version = 6;
+    //     struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)addr;
+    //     if (!inet_ntop(AF_INET6, &(addr6->sin6_addr), addrstr,
+    //                    INET6_ADDRSTRLEN + 1)) {
+    //         logexit("ntop");
+    //     }
+    //     port = ntohs(addr6->sin6_port); // network to host short
+    // }
+    
+    else {
+        logexit("unknown protocol family.");
+    }
+    if (str) {
+        snprintf(str, strsize, "IPv%d %s %hu", version, addrstr, port);
+    }
+}
+
+//Mautenção do cliente
 int server_sockaddr_init(const char *proto, const char *portstr,
                          struct sockaddr_storage *storage) {
     uint16_t port = (uint16_t)atoi(portstr); // unsigned short
@@ -106,13 +107,15 @@ int server_sockaddr_init(const char *proto, const char *portstr,
         addr4->sin_addr.s_addr = INADDR_ANY;
         addr4->sin_port = port;
         return 0;
-    // } else if (0 == strcmp(proto, "v6")) {
+    }
+    // else if (0 == strcmp(proto, "v6")) {
     //     struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)storage;
     //     addr6->sin6_family = AF_INET6;
     //     addr6->sin6_addr = in6addr_any;
     //     addr6->sin6_port = port;
     //     return 0;
-    } else {
+    // } 
+    else {
         return -1;
     }
 }
