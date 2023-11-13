@@ -16,11 +16,11 @@ char mensage[1024];
 //Para teste: ./server 127.0.0.1 90900 90100 ./server 127.0.0.1 90900 90200 ./client 127.0.0.1 90100 ./client 127.0.0.1 90200
 
 
-// void usage(int argc, char **argv) {
-// 	printf("usage: %s <server IP> <server port>\n", argv[0]);
-// 	printf("example: %s 127.0.0.1 51511\n", argv[0]);
-// 	exit(EXIT_FAILURE);
-// }
+ void usage(int argc, char **argv) {
+ 	printf("usage: %s <server IP> <server port>\n", argv[0]);
+	printf("example: %s 127.0.0.1 51511\n", argv[0]);
+ 	exit(EXIT_FAILURE);
+ }
 
 #define BUFSZ 1024
 
@@ -49,12 +49,12 @@ int quantosDados(const char *dados[]) {
 
 int main(int argc, char **argv) {
 	if (argc < 3) {
-		usage(argc, argv, 1);
+		usage(argc, argv);
 	}
 
 	struct sockaddr_storage storage;
 	if (0 != addrparse(argv[1], argv[2], &storage)) {
-		usage(argc, argv, 1);
+		usage(argc, argv);
 	}
 
 	int s;

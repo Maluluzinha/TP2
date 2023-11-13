@@ -13,15 +13,16 @@
 
 #define BUFSZ 1024
 #define max_Clients 10
+#define min_Clients 2
 
 //COMANDO PRA COMENTAR: CTRL K CTRL C NESSA ORDEM
 /////////////NÃO MEXER AINDA//////////////
 
-// void usage(int argc, char **argv) {
-//     printf("usage: %s <v4|v6> <server port>\n", argv[0]);
-//     printf("example: %s v4 51511\n", argv[0]);
-//     exit(EXIT_FAILURE);
-// }
+void usage(int argc, char **argv) {
+    printf("usage: %s <v4|v6> <server port>\n", argv[0]);
+    printf("example: %s v4 51511\n", argv[0]);
+    exit(EXIT_FAILURE);
+}
 
 //Usage para server IP Port
 // void usage(int argc, char **argv) {
@@ -32,16 +33,16 @@
 
 
 int main(int argc, char **argv) {
-    //if (argc < 3) {
-    if (argc < 4) {
-        usage(argc, argv, 1);
+    if (argc < 3) {
+    //if (argc != 2) {
+        usage(argc, argv);
     }
 
     struct sockaddr_storage storage;
     struct sockaddr_storage p2p_Storage; //storage para o p2p também
 
     if (0 != server_sockaddr_init(argv[1], argv[2], &storage)) {
-        usage(argc, argv, 1);
+        usage(argc, argv);
     }
 
     int s;

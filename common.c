@@ -10,17 +10,17 @@ void logexit(const char *msg) {
 	exit(EXIT_FAILURE);
 }
 
-void usage(int argc, char **argv, int n) {
-    if (n == 0) {
-        printf("usage: %s <v4|v6> <server port>\n", argv[0]);
-        printf("example: %s 51511\n", argv[0]);
-        exit(EXIT_FAILURE);
-    } else {
-        printf("usage: %s <v4> <server IP> <server port>\n", argv[0]);
-        printf("example: %s 127.0.0.1 51511\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-}
+// void usage(int argc, char **argv) {
+//     // if (n == 0) {
+//         printf("usage: %s <v4|v6> <server port>\n", argv[0]);
+//         printf("example: %s 51511\n", argv[0]);
+//          exit(EXIT_FAILURE);
+//     // } else {
+//         // printf("usage: %s <v4> <server IP> <server port>\n", argv[0]);
+//         // printf("example: %s 127.0.0.1 51511\n", argv[0]);
+//         // exit(EXIT_FAILURE);
+//    // }
+// }
 
 void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
     int version;
