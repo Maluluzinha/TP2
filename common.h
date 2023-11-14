@@ -13,8 +13,11 @@ int addrparse(const char *addrstr, const char *portstr,
 
 void addrtostr(const struct sockaddr *addr, char *str, size_t strsize);
 
-int server_sockaddr_init(const char *proto, const char *portstr,
-                         struct sockaddr_storage *storage);
+// int server_sockaddr_init(const char *proto, const char *portstr,
+//                          struct sockaddr_storage *storage);
+int server_sockaddr_init(const char *id_server, const char *portstr, 
+                                                const char *portp2p, 
+                                                struct sockaddr_storage *storage);
 
 //Para testar: Terminal 1: ./server 127.0.0.1 90900 90100 ./server 127.0.0.1 90900 90200 ./client 127.0.0.1 90100 ./client 127.0.0.1 90200
 

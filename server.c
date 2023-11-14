@@ -24,27 +24,45 @@
 // }
 
 int main(int argc, char **argv) {
-    if (argc < 4) { //Se = 3, funciona ./server v4 90900, se = 4, funciona ./server v4 90900 90100
+    if (argc < 3) { //Se = 3, funciona ./server v4 90900, se = 4, funciona ./server v4 90900 90100
         usage(argc, argv, 1);
     }
 
     //CODE INIT HERE
     // Setup P2P socket
     //CUIDADO COM AS VARIAVEIS NO SOCKADDR_IN
+    struct sockaddr_storage p2p_storage; //storage para o p2p também
+     if (0 != server_sockaddr_init(argv[1], argv[2], argv[3], &p2p_storage)) {
+        usage(argc, argv, 1);
+    }
+
     int p2p_socket = socket(AF_INET, SOCK_STREAM, 0); //Socket servidor 1
     if (p2p_socket == -1) {
         logexit("P2P socket");
     }
 
-    struct sockaddr_in p2p_addr; //Essa parte aqui que ta dando problema <<<---------
-    // Associar o socket ao endereço e à porta para o Servidor 1
-    //bind(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr));
-    if (0 != bind(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr))) {
+    int enable = 1;
+    if (0 != setsockopt(p2p_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int))) {
+        logexit("setsockopt");
+    }
+
+    //struct sockaddr_storage p2p_storage; //storage para o p2p também
+
+    struct sockaddr_in *p2p_addr = (struct sockaddr_in *)(&p2p_storage);; //Essa parte aqui que ta dando problema <<<---------
+    // memset(p2p_addr, 0, sizeof(*p2p_addr));
+    // p2p_addr->sin_family = AF_INET;
+    // p2p_addr->sin_port = htons(atoi(argv[2]));
+    // p2p_addr->sin_addr.s_addr = INADDR_ANY;
+
+    if (0 != bind(p2p_socket, (struct sockaddr *)p2p_addr, sizeof(* p2p_addr))) {
         logexit("bind");
     }
     
     // Colocar o socket em modo de escuta para o Servidor 1
-    listen(p2p_socket, 5);
+     if (0 != listen(p2p_socket, 10)) {
+        logexit("listen");
+    }
+    //listen(p2p_socket, 5);
 
     printf("Servidor 1 aguardando conexão na porta primaria\n");
 
@@ -64,9 +82,8 @@ int main(int argc, char **argv) {
     //CODE END HERE
 
     struct sockaddr_storage storage;
-    struct sockaddr_storage p2p_storage; //storage para o p2p também
 
-    if (0 != server_sockaddr_init(argv[1], argv[2], &storage)) {
+    if (0 != server_sockaddr_init(argv[1], argv[2], argv[3], &storage)) {
         usage(argc, argv, 1);
     }
 
@@ -76,7 +93,7 @@ int main(int argc, char **argv) {
         logexit("socket");
     }
 
-    int enable = 1;
+    //int enable = 1;
     if (0 != setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int))) {
         logexit("setsockopt");
     }
@@ -94,21 +111,21 @@ int main(int argc, char **argv) {
 
     //CODE RESUME HERE
  // Criar o socket para o Servidor 2
-    int server_socket2 = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in p2p_addr_server2;
+    // int server_socket2 = socket(AF_INET, SOCK_STREAM, 0);
+    // struct sockaddr_in p2p_addr_server2;
 
-    // Configurar a estrutura sockaddr_in para o Servidor 2
-    p2p_addr_server2.sin_family = AF_INET;
-    p2p_addr_server2.sin_port = htons(90100);
-    p2p_addr_server2.sin_addr.s_addr = INADDR_ANY;
+    // // Configurar a estrutura sockaddr_in para o Servidor 2
+    // p2p_addr_server2.sin_family = AF_INET;
+    // p2p_addr_server2.sin_port = htons(90100);
+    // p2p_addr_server2.sin_addr.s_addr = INADDR_ANY;
 
-    // Associar o socket ao endereço e à porta para o Servidor 2
-    bind(server_socket2, (struct sockaddr*)&p2p_addr_server2, sizeof(p2p_addr_server2));
+    // // Associar o socket ao endereço e à porta para o Servidor 2
+    // bind(server_socket2, (struct sockaddr*)&p2p_addr_server2, sizeof(p2p_addr_server2));
 
-    // Colocar o socket em modo de escuta para o Servidor 2
-    listen(server_socket2, 5);
+    // // Colocar o socket em modo de escuta para o Servidor 2
+    // listen(server_socket2, 5);
 
-    printf("Servidor 2 aguardando conexão na porta secundária\n");
+    // printf("Servidor 2 aguardando conexão na porta secundária\n");
 
     // // Aceitar a conexão para o Servidor 1
     // addr_size = sizeof(client_addr);
