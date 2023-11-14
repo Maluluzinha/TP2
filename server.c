@@ -31,20 +31,36 @@ int main(int argc, char **argv) {
     //CODE INIT HERE
     // Setup P2P socket
     //CUIDADO COM AS VARIAVEIS NO SOCKADDR_IN
-    int p2p_socket = socket(AF_INET, SOCK_STREAM, 0);
+    int p2p_socket = socket(AF_INET, SOCK_STREAM, 0); //Socket servidor 1
     if (p2p_socket == -1) {
         logexit("P2P socket");
     }
-    struct sockaddr_in p2p_addr; //Essa parte aqui que ta dando problema <<<---------
-    //struct sockaddr_in server_addr;
-    memset(&p2p_addr, 0, sizeof(p2p_addr));
-    p2p_addr.sin_family = AF_INET;
-    p2p_addr.sin_addr.s_addr = inet_addr(argv[2]);
-    p2p_addr.sin_port = htons(atoi(argv[3]));
 
-    if (connect(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr)) == -1) {
-        logexit("connect to peer");
+    struct sockaddr_in p2p_addr; //Essa parte aqui que ta dando problema <<<---------
+    // Associar o socket ao endereço e à porta para o Servidor 1
+    //bind(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr));
+    if (0 != bind(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr))) {
+        logexit("bind");
     }
+    
+    // Colocar o socket em modo de escuta para o Servidor 1
+    listen(p2p_socket, 5);
+
+    printf("Servidor 1 aguardando conexão na porta primaria\n");
+
+    //Até aqui "foi" M - Servidor 1 aguardando conexão na porta primaria - connect to peer: Transport endpoint is already connected
+
+    
+    //struct sockaddr_in server_addr;
+    // memset(&p2p_addr, 0, sizeof(p2p_addr));
+    // p2p_addr.sin_family = AF_INET;
+    // p2p_addr.sin_addr.s_addr = inet_addr(argv[2]);
+    // p2p_addr.sin_port = htons(atoi(argv[3]));
+
+    //Necessário modificar o init
+    //if (connect(p2p_socket, (struct sockaddr*)&p2p_addr, sizeof(p2p_addr)) == -1) {
+    //    logexit("connect to peer"); //->>>>>dando problema aqui -> connect to peer: Transport endpoint is already connected
+    //}
     //CODE END HERE
 
     struct sockaddr_storage storage;
@@ -70,17 +86,45 @@ int main(int argc, char **argv) {
         logexit("bind");
     }
 
-    // struct sockaddr *addr_p2p = (struct sockaddr *)(&p2p_storage);
-    // if (0 != bind(s, addr_p2p, sizeof(p2p_storage))) {
-    //     logexit("bind");
-    // }
-
     if (0 != listen(s, 10)) {
         logexit("listen");
     }
 
     /////////////NÃO MEXER AINDA//////////////
 
+    //CODE RESUME HERE
+ // Criar o socket para o Servidor 2
+    int server_socket2 = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in p2p_addr_server2;
+
+    // Configurar a estrutura sockaddr_in para o Servidor 2
+    p2p_addr_server2.sin_family = AF_INET;
+    p2p_addr_server2.sin_port = htons(90100);
+    p2p_addr_server2.sin_addr.s_addr = INADDR_ANY;
+
+    // Associar o socket ao endereço e à porta para o Servidor 2
+    bind(server_socket2, (struct sockaddr*)&p2p_addr_server2, sizeof(p2p_addr_server2));
+
+    // Colocar o socket em modo de escuta para o Servidor 2
+    listen(server_socket2, 5);
+
+    printf("Servidor 2 aguardando conexão na porta secundária\n");
+
+    // // Aceitar a conexão para o Servidor 1
+    // addr_size = sizeof(client_addr);
+    // client_socket1 = accept(server_socket1, (struct sockaddr*)&client_addr, &addr_size);
+
+    // // Lógica para o Servidor 1
+    // handle_client(client_socket1);
+
+    // // Aceitar a conexão para o Servidor 2
+    // addr_size = sizeof(client_addr);
+    // client_socket2 = accept(server_socket2, (struct sockaddr*)&client_addr, &addr_size);
+
+    // // Lógica para o Servidor 2
+    // handle_client(client_socket2);
+
+    //CODE END HERE
 
     //USANDO SELECT
     // // Encaminhar a mensagem para o peer
