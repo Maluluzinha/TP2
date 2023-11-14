@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
     //struct sockaddr_storage p2p_storage; //storage para o p2p também
 
-    struct sockaddr_in *p2p_addr = (struct sockaddr_in *)(&p2p_storage);; //Essa parte aqui que ta dando problema <<<---------
+    struct sockaddr_in *p2p_addr = (struct sockaddr_in *)(&p2p_storage);; //Essa parte aqui que ta dando problema <<<--------- tava
     // memset(p2p_addr, 0, sizeof(*p2p_addr));
     // p2p_addr->sin_family = AF_INET;
     // p2p_addr->sin_port = htons(atoi(argv[2]));
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 
     struct sockaddr *addr = (struct sockaddr *)(&storage);
     if (0 != bind(s, addr, sizeof(storage))) {
-        logexit("bind");
+       logexit("bind");
     }
 
     if (0 != listen(s, 10)) {
@@ -109,54 +109,11 @@ int main(int argc, char **argv) {
 
     /////////////NÃO MEXER AINDA//////////////
 
-    //CODE RESUME HERE
- // Criar o socket para o Servidor 2
-    // int server_socket2 = socket(AF_INET, SOCK_STREAM, 0);
-    // struct sockaddr_in p2p_addr_server2;
-
-    // // Configurar a estrutura sockaddr_in para o Servidor 2
-    // p2p_addr_server2.sin_family = AF_INET;
-    // p2p_addr_server2.sin_port = htons(90100);
-    // p2p_addr_server2.sin_addr.s_addr = INADDR_ANY;
-
-    // // Associar o socket ao endereço e à porta para o Servidor 2
-    // bind(server_socket2, (struct sockaddr*)&p2p_addr_server2, sizeof(p2p_addr_server2));
-
-    // // Colocar o socket em modo de escuta para o Servidor 2
-    // listen(server_socket2, 5);
-
-    // printf("Servidor 2 aguardando conexão na porta secundária\n");
-
-    // // Aceitar a conexão para o Servidor 1
-    // addr_size = sizeof(client_addr);
-    // client_socket1 = accept(server_socket1, (struct sockaddr*)&client_addr, &addr_size);
-
-    // // Lógica para o Servidor 1
-    // handle_client(client_socket1);
-
-    // // Aceitar a conexão para o Servidor 2
-    // addr_size = sizeof(client_addr);
-    // client_socket2 = accept(server_socket2, (struct sockaddr*)&client_addr, &addr_size);
-
-    // // Lógica para o Servidor 2
-    // handle_client(client_socket2);
-
+    
     //CODE END HERE
 
     //USANDO SELECT
     // // Encaminhar a mensagem para o peer
-    // int p2p_sock;
-    // p2p_sock = socket(p2p_storage.ss_family, SOCK_STREAM, 0); //Socket pro servidor
-    // if (p2p_sock == -1) {
-    // //     logexit("socket"); //TA DANDO ERRO AQUI O -> socket: Address family not supported by protocol
-    //  }
-    // //struct sockaddr *p2p_addr = (struct sockaddr *)(&p2p_storage);
-    
-    // //Socket para comunicar com o cliente
-    // int cliente_socket = socket(AF_INET, SOCK_STREAM, 0);
-    // if (cliente_socket == -1) {
-    //     logexit("cliente socket not ok");
-    // }
 
     //Comandos select:
     fd_set read_fds;
@@ -172,7 +129,10 @@ int main(int argc, char **argv) {
     printf("Server waiting for connections...\n");
 
     char addrstr[BUFSZ];
+    char addrstr_p2p[BUFSZ];
+    addrtostr( (struct sockaddr *)p2p_addr, addrstr_p2p, BUFSZ);
     addrtostr(addr, addrstr, BUFSZ);
+    printf("bound to %s, waiting connections\n", addrstr_p2p);
     printf("bound to %s, waiting connections\n", addrstr);
 
     while (1) {
