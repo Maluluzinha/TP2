@@ -142,3 +142,27 @@ int server_sockaddr_init(const char *id_server, const char *portstr,
         return 0;
  
 }
+
+//Funções para string 
+void quebraString(const char *entrada, char *info[], int maxPedacos) {
+    char copiaEntrada[strlen(entrada) + 1];
+    strcpy(copiaEntrada, entrada);
+	char espacoChar[] = " ";
+
+    int contador = 0;
+    char *token = strtok(copiaEntrada, espacoChar);
+
+    while (token != NULL && contador < maxPedacos) {
+        info[contador] = strdup(token); // Aloca memória para cada pedaço
+        token = strtok(NULL, espacoChar);
+        contador++;
+    }
+}
+
+int quantosDados(const char *dados[]) {
+    int tamanho = 0;
+    while (dados[tamanho] != NULL) {
+        tamanho++;
+    }
+    return tamanho;
+}

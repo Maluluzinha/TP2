@@ -43,6 +43,22 @@ int main(int argc, char **argv) {
 
 	printf("connected to %s\n", addrstr);
 
+	/*--------------------------------- Buffers para alocar informações --------------------------------------------*/
+	//CODE INIT HERE
+	char dadosDigitados[BUFSZ]; //Entrada
+	memset(dadosDigitados, 0, BUFSZ); //Aloca memória
+    printf("Digite uma string: ");
+    fgets(dadosDigitados, sizeof(dadosDigitados), stdin);
+
+    dadosDigitados[strcspn(dadosDigitados, "\n")] = '\0'; // Remover o caractere de nova linha
+
+    char *dados[20]; //Limite de 20 palavras
+	char *dadosDoServer[20]; //Limite de 20 palavras
+	memset(dados, 0, BUFSZ); //Limpa os dados para validar o tamanho deles
+	memset(dadosDoServer, 0, BUFSZ);
+    quebraString(dadosDigitados, dados, 20); //Chama a função para quebrar os dados da string	
+	//CODE END HERE
+
 	char buf[BUFSZ];
 	memset(buf, 0, BUFSZ);
 	printf("mensagem> ");

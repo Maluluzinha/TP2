@@ -19,5 +19,8 @@ int server_sockaddr_init(const char *id_server, const char *portstr,
                                                 const char *portp2p, 
                                                 struct sockaddr_storage *storage);
 
+void quebraString(const char *entrada, char *info[], int maxPedacos);
+int quantosDados(const char *dados[]);
+
 //Para testar: Terminal 1: ./server 127.0.0.1 90900 90100 ./server 127.0.0.1 90900 90200 ./client 127.0.0.1 90100 ./client 127.0.0.1 90200
 
