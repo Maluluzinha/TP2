@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <sys/socket.h>
+//#include <sys/syslog.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
     }
 
     int enable = 1;
-    if (0 != setsockopt(p2p_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int))) {
+    if (0 != setsockopt(p2p_socket, SOL_SOCKET, SO_REUSEADDR , &enable, sizeof(int))) {
         logexit("setsockopt");
     }
 
