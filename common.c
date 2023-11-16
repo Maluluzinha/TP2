@@ -123,9 +123,10 @@ void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
 
 //Mautenção do cliente
 int server_sockaddr_init(const char *id_server, const char *portstr, 
-                                                const char *portp2p, 
+                                                //const char *portstr, 
                                                 struct sockaddr_storage *storage) {
 
+    //uint16_t port = (uint16_t)atoi(portstr); // unsigned short
     uint16_t port = (uint16_t)atoi(portstr); // unsigned short
     if (port == 0) {
         return -1;
@@ -143,7 +144,7 @@ int server_sockaddr_init(const char *id_server, const char *portstr,
  
 }
 
-//Funções para string 
+/*--------------------------------- Funções para manipular string --------------------------------------------*/
 void quebraString(const char *entrada, char *info[], int maxPedacos) {
     char copiaEntrada[strlen(entrada) + 1];
     strcpy(copiaEntrada, entrada);

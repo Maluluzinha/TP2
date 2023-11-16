@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     printf("Parâmetros: ID: %s, Port 1: %s, Port 2: %s \n", argv[1],argv[2],argv[3]);
     
     struct sockaddr_storage p2p_storage; //storage para o p2p também
-     if (0 != server_sockaddr_init(argv[1], argv[2], argv[3], &p2p_storage)) {
+     if (0 != server_sockaddr_init(argv[1], argv[2], &p2p_storage)) {
         usage(argc, argv, 0);
     }
 
@@ -64,12 +64,12 @@ int main(int argc, char **argv) {
     //Até aqui "foi" M - Servidor 1 aguardando conexão na porta primaria - connect to peer: Transport endpoint is already connected
     //CODE END HERE
 
-    /* ---------------------- 2 - Servidor Mj, servidor passivo, que é aberto depois ---------------------- */
+    /* ---------------------- 2 - Servidor Mj, servidor passivo - do cliente, que é aberto depois ---------------------- */
     //CODE INIT HERE
     // Setup P2P socket
     struct sockaddr_storage storage;
 
-    if (0 != server_sockaddr_init(argv[1], argv[2], argv[3], &storage)) {
+    if (0 != server_sockaddr_init(argv[1], argv[3], &storage)) {
         usage(argc, argv, 1);
     }
 
@@ -119,9 +119,9 @@ int main(int argc, char **argv) {
     addrtostr( (struct sockaddr *)p2p_addr, addrstr_p2p, BUFSZ);
     printf("bound to %s, waiting connections\n", addrstr_p2p);
     
-	if (0 != connect(s, addr, sizeof(storage))) {
-	 	logexit("connect");
-	}
+	// if (0 != connect(s, addr, sizeof(storage))) {
+	//  	logexit("connect");
+	// }
     
     //Configuração para receber um comando:
     char dadosDigitados[BUFSZ]; //Entrada
@@ -163,14 +163,14 @@ int main(int argc, char **argv) {
         printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf);
 
         /*--------------------------------- PRIMEIRO COMANDO PARA CONECTAR --------------------------------------------*/
-         if (0 == strncmp(dadosDigitados, "REQ_ADDPEER", sizeof(dadosDigitados))) {
-            if("peer compare"){
-                printf("Peer found, verifing limit..");
-            }
-            else{
-                printf("No peer found, starting to listen..");
-            }
-         }
+        //  if (0 == strncmp(dadosDigitados, "REQ_ADDPEER", sizeof(dadosDigitados))) {
+        //     if("peer compare"){
+        //         printf("Peer found, verifing limit..");
+        //     }
+        //     else{
+        //         printf("No peer found, starting to listen..");
+        //     }
+        //  }
 
         sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
         count = send(csock, buf, strlen(buf) + 1, 0);
@@ -178,6 +178,46 @@ int main(int argc, char **argv) {
             logexit("send");
         }
         close(csock);
+    
+
+    // FD_ZERO(&read_fds);
+
+    //     FD_SET(p2p_socket, &read_fds);
+    //     FD_SET(s, &read_fds);
+    //     int max_socket;
+    //     max_socket = (p2p_socket > s) ? p2p_socket : s;
+    //     struct sockaddr_storage cstorage;
+    //     struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
+    //     socklen_t caddrlen = sizeof(cstorage);
+
+    //     int new_sock = accept(s, caddr, &caddrlen);
+    //     if (new_sock == -1) {
+    //         logexit("accept");
+    //     }
+
+    //     // Aguarda até que alguma atividade ocorra em qualquer um dos sockets
+    //     if (select(max_socket + 1, &read_fds, NULL, NULL, NULL) < 0) {
+    //         perror("Select error");
+    //         exit(EXIT_FAILURE);
+    //     }
+
+    //     // Verifica se há uma nova conexão P2P
+    //     if (FD_ISSET(p2p_socket, &read_fds)) {
+    //         if (new_sock < 0) {
+    //             perror("P2P accept failed");
+    //             exit(EXIT_FAILURE);
+    //         }
+    //         handle_p2p_connection(new_sock);
+    //     }
+
+    //     // Verifica se há uma nova conexão de cliente
+    //     if (FD_ISSET(s, &read_fds)) {
+    //         if (new_sock < 0) {
+    //             perror("Client accept failed");
+    //             exit(EXIT_FAILURE);
+    //         }
+    //         handle_client_connection(new_sock);
+    //     }
     }
 
     exit(EXIT_SUCCESS);
