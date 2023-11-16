@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include <sys/select.h>
 
+//Comando pra branch -> git checkout --track origin/teste_p2p
+
 #define BUFSZ 1024
 #define MAX_CLIENTS 10
 #define MIN_CLIENTS 2
