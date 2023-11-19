@@ -122,11 +122,10 @@ void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
 // }
 
 //Mautenção do cliente
-int server_sockaddr_init(const char *id_server, const char *portstr, 
-                                                //const char *portstr, 
-                                                struct sockaddr_storage *storage) {
+int server_sockaddr_init(const char *id_server, 
+                            const char *portstr, 
+                            struct sockaddr_storage *storage) {
 
-    //uint16_t port = (uint16_t)atoi(portstr); // unsigned short
     uint16_t port = (uint16_t)atoi(portstr); // unsigned short
     if (port == 0) {
         return -1;
@@ -134,8 +133,7 @@ int server_sockaddr_init(const char *id_server, const char *portstr,
     port = htons(port); // host to network short
 
     memset(storage, 0, sizeof(*storage));
-//Novo: ./server 127.0.0.1 90900 9010
-   // if (0 == strcmp(proto, "v4")) {
+
         struct sockaddr_in *addr4 = (struct sockaddr_in *)storage;
         addr4->sin_family = AF_INET;
         addr4->sin_addr.s_addr = INADDR_ANY;

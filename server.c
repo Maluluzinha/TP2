@@ -19,9 +19,36 @@
 
 typedef struct client_data {
   int csock;
-  struct sockaddr_in addr;
+  //struct sockaddr_in addr;
   int id;
 } client_data;
+
+// typedef struct {
+//     int id;
+//     int csock;
+// } ClientInfo;
+
+// void handle_new_connection(int new_socket, ClientInfo clients[], int *client_count) {
+//     if (*client_count >= MAX_CLIENTS) {
+//         // Limite de conexões atingido
+//         send(new_socket, "ERROR(01)", 10, 0);
+//         printf("Error: Maximum connections reached.\n");
+//         close(new_socket);
+//     } else {
+//         // Aceita a conexão
+//         clients[*client_count].csock = new_socket;
+//         clients[*client_count].id = *client_count + 1; // Simplesmente usa o índice como ID neste exemplo
+//         (*client_count)++;
+
+//         // Envia mensagem de sucesso para o cliente
+//         char response[20];
+//         snprintf(response, sizeof(response), "RES_ADD(%d)", clients[*client_count - 1].id);
+//         send(new_socket, response, strlen(response), 0);
+
+//         // Imprime no servidor
+//         printf("Client Id%d added\n", clients[*client_count - 1].id);
+//     }
+// }
 
 //COMANDO PRA COMENTAR: CTRL K CTRL C NESSA ORDEM
 
@@ -52,7 +79,7 @@ int main(int argc, char **argv) {
     }
 
     struct sockaddr_in *p2p_addr = (struct sockaddr_in *)(&p2p_storage);; //Essa parte aqui que ta dando problema <<<--------- tava
-    if (0 != bind(p2p_socket, (struct sockaddr *)p2p_addr, sizeof(* p2p_addr))) {
+    if (0 != bind(p2p_socket, (struct sockaddr *)p2p_addr, sizeof(p2p_storage))) {
         logexit("bind");
     }
     
@@ -62,7 +89,7 @@ int main(int argc, char **argv) {
     }
     //listen(p2p_socket, 5);
 
-    printf("Servidor 1 aguardando conexão na porta 1\n");
+    printf("Servidor P2P aguardando conexão na porta 1\n");
 
     //Até aqui "foi" M - Servidor 1 aguardando conexão na porta primaria - connect to peer: Transport endpoint is already connected
     //CODE END HERE
@@ -110,6 +137,15 @@ int main(int argc, char **argv) {
     max_fd = (p2p_socket > s) ? p2p_socket : s;
     printf("Server waiting for connections...\n");
 
+    /* ---------------------------  Criando a lista de Clientes -------------------------- */
+    //client_data *clients = (client_data *)calloc(MAX_CLIENTS, sizeof(client_data));
+    client_data clients_List[MAX_CLIENTS];
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+    clients_List[i].id = 0;
+    }
+    int contador_Cliente = 0;
+    int id_Inicial = 0;
+    char resposta_Server[BUFSZ];
 
     /* --------------------------- 4 - Configuração de buffer para receber a mensagem -------------------------- */
     //Mj
@@ -120,108 +156,111 @@ int main(int argc, char **argv) {
     //Mi
     char addrstr_p2p[BUFSZ];
     addrtostr( (struct sockaddr *)p2p_addr, addrstr_p2p, BUFSZ);
-    printf("bound to %s, waiting connections\n", addrstr_p2p);
-    
-	// if (0 != connect(s, addr, sizeof(storage))) {
-	//  	logexit("connect");
-	// }
-    
-    //Configuração para receber um comando:
-    char dadosDigitados[BUFSZ]; //Entrada
-	memset(dadosDigitados, 0, BUFSZ); //Aloca memória
-    printf("Digite uma string: ");
-    fgets(dadosDigitados, sizeof(dadosDigitados), stdin);
-    dadosDigitados[strcspn(dadosDigitados, "\n")] = '\0'; // Remover o caractere de nova linha
-
-	//char addrstr[BUFSZ];
-	//addrtostr(addr, addrstr, BUFSZ);
-
-	//printf("connected to %s\n", addrstr);
+//    printf("bound to %s, waiting connections\n", addrstr_p2p);
 
     while (1) {
 
-        //Config fd_set//
-        fd_set temp_fds = read_fds;
+        /* --------------------------- Teste do Select() -------------------------- */
 
-        if (select(max_fd + 1, &temp_fds, NULL, NULL, NULL) == -1) {
+        if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) == -1) {
             logexit("select");
         }
 
-        struct sockaddr_storage cstorage;
-        struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
-        socklen_t caddrlen = sizeof(cstorage);
+        if (FD_ISSET(p2p_socket, &read_fds)) {
+            struct sockaddr_storage cstorage;
+            struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
+            socklen_t caddrlen = sizeof(cstorage);
 
-        int csock = accept(s, caddr, &caddrlen);
-        if (csock == -1) {
-            logexit("accept");
+            int csock = accept(p2p_socket, caddr, &caddrlen);
+            if (csock == -1) {
+                logexit("accept");
+            }
+
+            char caddrstr[BUFSZ];
+            addrtostr(caddr, caddrstr, BUFSZ);
+            printf("[log] P2P connection from %s\n", caddrstr);
+
+            close(csock);
         }
 
-        char caddrstr[BUFSZ];
-        addrtostr(caddr, caddrstr, BUFSZ);
-        printf("[log] connection from %s\n", caddrstr);
+        /* ------------------------------- Select() para o cliente ------------------------------ */
+        if (FD_ISSET(s, &read_fds)) {
+            struct sockaddr_storage cstorage;
+            struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
+            socklen_t caddrlen = sizeof(cstorage);
 
-        char buf[BUFSZ];
-        memset(buf, 0, BUFSZ);
-        size_t count = recv(csock, buf, BUFSZ - 1, 0);
-        printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf);
+            int csock = accept(s, caddr, &caddrlen);
+            if (csock == -1) {
+                logexit("accept");
+            }
 
-        /*--------------------------------- PRIMEIRO COMANDO PARA CONECTAR --------------------------------------------*/
-        //  if (0 == strncmp(dadosDigitados, "REQ_ADDPEER", sizeof(dadosDigitados))) {
-        //     if("peer compare"){
-        //         printf("Peer found, verifing limit..");
-        //     }
-        //     else{
-        //         printf("No peer found, starting to listen..");
-        //     }
-        //  }
+        /* ------------------------------- Adiciona o cliente na lista de clientes ------------------------------ */
+            //Aqui verifica se a lista está cheia de clientes
+            if(contador_Cliente > MAX_CLIENTS){
+                memcpy(resposta_Server, "ERROR_01", sizeof("ERROR_01"));
+                send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
+        
+            }
+            else{
 
-        sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
-        count = send(csock, buf, strlen(buf) + 1, 0);
-        if (count != strlen(buf) + 1) {
-            logexit("send");
+            //Se não estiver cheio, adiciona o cliente na lista
+            char caddrstr[BUFSZ];
+            addrtostr(caddr, caddrstr, BUFSZ);
+            printf("[log] connection from server %s\n", caddrstr);
+
+            // Adiciona o novo cliente à lista
+            clients_List[contador_Cliente].csock = csock;       //Adiciona socket ao vetor
+            clients_List[contador_Cliente].id = id_Inicial + 1; //Atribui ID
+            id_Inicial++;
+
+            //Envia resposta ao cliente
+            snprintf(resposta_Server, sizeof(resposta_Server), "RES_ADD( %d )", clients_List[contador_Cliente].id);
+            //snprintf(resposta_Server, sizeof(resposta_Server), "RES_ADD");
+            send(csock, resposta_Server, strlen(resposta_Server), 0);
+
+            // Imprime no servidor
+            printf("Client %d added\n", clients_List[contador_Cliente].id);
+
+            contador_Cliente++;
+            printf("Conectados: %d", contador_Cliente); //APAGAR DEPOIS
+
+            char buf[BUFSZ];
+            memset(buf, 0, BUFSZ);
+            size_t count = recv(csock, buf, BUFSZ - 1, 0);
+            printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf); //APAGAR DEPOIS
+
+            }
+            //close(csock);
+
         }
-        close(csock);
+    }
+
+    // Check for activity on client sockets
+        for (int i = 0; i < MAX_CLIENTS; ++i) {
+            if (clients_List[i].csock > 0 && FD_ISSET(clients_List[i].csock, &read_fds)) {
+                char buf[BUFSZ];
+                memset(buf, 0, BUFSZ);
+                size_t count = recv(clients_List[i].csock, buf, BUFSZ - 1, 0);
+                printf("[msg] Client %d, %d bytes: %s\n", clients_List[i].id, (int)count, buf);
+
+                // Handle client message or close the connection as needed
+
+                // For now, just close the connection
+                close(clients_List[i].csock);
+                clients_List[i].csock = -1;
+            }
+        }
     
 
-    // FD_ZERO(&read_fds);
+    // Free allocated memory
+    free(clients_List);
 
-    //     FD_SET(p2p_socket, &read_fds);
-    //     FD_SET(s, &read_fds);
-    //     int max_socket;
-    //     max_socket = (p2p_socket > s) ? p2p_socket : s;
-    //     struct sockaddr_storage cstorage;
-    //     struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
-    //     socklen_t caddrlen = sizeof(cstorage);
-
-    //     int new_sock = accept(s, caddr, &caddrlen);
-    //     if (new_sock == -1) {
-    //         logexit("accept");
-    //     }
-
-    //     // Aguarda até que alguma atividade ocorra em qualquer um dos sockets
-    //     if (select(max_socket + 1, &read_fds, NULL, NULL, NULL) < 0) {
-    //         perror("Select error");
-    //         exit(EXIT_FAILURE);
-    //     }
-
-    //     // Verifica se há uma nova conexão P2P
-    //     if (FD_ISSET(p2p_socket, &read_fds)) {
-    //         if (new_sock < 0) {
-    //             perror("P2P accept failed");
-    //             exit(EXIT_FAILURE);
-    //         }
-    //         handle_p2p_connection(new_sock);
-    //     }
-
-    //     // Verifica se há uma nova conexão de cliente
-    //     if (FD_ISSET(s, &read_fds)) {
-    //         if (new_sock < 0) {
-    //             perror("Client accept failed");
-    //             exit(EXIT_FAILURE);
-    //         }
-    //         handle_client_connection(new_sock);
-    //     }
-    }
+        // sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
+        // count = send(csock, buf, strlen(buf) + 1, 0);
+        // if (count != strlen(buf) + 1) {
+        //     logexit("send");
+        // }
+        // close(csock);
 
     exit(EXIT_SUCCESS);
 }
