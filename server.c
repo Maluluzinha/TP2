@@ -38,8 +38,6 @@ int tabelaSensor[MAX_SENSORS][DADOS_SENSOR]; //Tabela
 
 //Inicializar dados aleatórios para os sensores
 void inicializa_sensores() {
-    // Seed para a função rand()
-    //srand(time(NULL));
 
     // Gere aleatoriamente o número de sensores entre MIN_SENSORS e MAX_SENSORS
     int num_sensors = rand() % (MAX_SENSORS - MIN_SENSORS + 1) + MIN_SENSORS;
@@ -63,35 +61,7 @@ int localiza_Cliente(int client_Line) { // Percorrer lista para verificar a exis
     return 0;
 }
 
-
-// typedef struct {
-//     int id;
-//     int csock;
-// } ClientInfo;
-
-// void handle_new_connection(int new_socket, ClientInfo clients[], int *client_count) {
-//     if (*client_count >= MAX_CLIENTS) {
-//         // Limite de conexões atingido
-//         send(new_socket, "ERROR(01)", 10, 0);
-//         printf("Error: Maximum connections reached.\n");
-//         close(new_socket);
-//     } else {
-//         // Aceita a conexão
-//         clients[*client_count].csock = new_socket;
-//         clients[*client_count].id = *client_count + 1; // Simplesmente usa o índice como ID neste exemplo
-//         (*client_count)++;
-
-//         // Envia mensagem de sucesso para o cliente
-//         char response[20];
-//         snprintf(response, sizeof(response), "RES_ADD(%d)", clients[*client_count - 1].id);
-//         send(new_socket, response, strlen(response), 0);
-
-//         // Imprime no servidor
-//         printf("Client Id%d added\n", clients[*client_count - 1].id);
-//     }
-// }
-
-//COMANDO PRA COMENTAR: CTRL K CTRL C NESSA ORDEM
+//COMANDO PRA COMENTAR: CTRL K CTRL C NESSA ORDEM || OU CTRL ;
 
 int main(int argc, char **argv) {
 
