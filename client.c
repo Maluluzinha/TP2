@@ -64,76 +64,65 @@ int main(int argc, char **argv) {
     quebraString(dadosDigitados, dados, 20); //Chama a função para quebrar os dados da string	
 
 	if (dados[0] != NULL) {
-		/*--------------------------------- COMANDO PARA INSTALAR SENSOR E ARQUIVO --------------------------------------------*/
-        // if (strcmp(dados[0], "install") == 0) {
-			 
-        // 		char *msg_req = "INS_REQ";
-      	// 		memcpy(dados[1], msg_req, sizeof(&msg_req));
-		//     	char buf_to_send[BUFSZ];	   //Uma unica string para enviar
-      	//     	memset(buf_to_send, 0, BUFSZ); //Memoria pra string
+		
+		/*--------------------------------- Mensagem de requisição de saída de cliente na rede -------------------------------------*/
+		if(strcmp(dados[0], "kill") == 0){
+			//char *msg_req = "REQ_DC";
+      		char buf_to_send[BUFSZ];	   //Uma unica string para enviar
+      	    memset(buf_to_send, 0, BUFSZ); //Memoria pra string
+            strcat(buf_to_send, "REQ_DC");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+			if (count != strlen(buf_to_send) + 1) {
+        		logexit("send");
+      		}
 
-		//     	for (int i = 1; i <= 5; i++) {
-        //     		strcat(buf_to_send, dados[i]);
-        //     		strcat(buf_to_send, " ");
-        //     	}
+		}
+		/*--------------------------------- Consultar Max Potência Local -------------------------------------*/
+		else if(strcmp(dados[0], "show") == 0){
+			if(strcmp(dados[1], "localmaxsensor") == 0){
+				
+			char buf_to_send[BUFSZ];	   
+      	    memset(buf_to_send, 0, BUFSZ); 
+            strcat(buf_to_send, "REQ_LS");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+				if (count != strlen(buf_to_send) + 1) {
+        			logexit("send");
+      			}
+			}
+		/*--------------------------------- Consultar Max Potência Externa --------------------------------*/
+			else if(strcmp(dados[1], "externalmaxsensor") == 0){
 
-		// 		size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+			char buf_to_send[BUFSZ];	   
+      	    memset(buf_to_send, 0, BUFSZ); 
+            strcat(buf_to_send, "REQ_ES");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+				if (count != strlen(buf_to_send) + 1) {
+        			logexit("send");
+      			}
+			
+			}
+		}
 
-      	// 		if (count != strlen(buf_to_send) + 1) {
-        // 			logexit("send");
-      	// 		}
-
-		//     }
-		// 	/*--------------------------------- Mensagem de requisição de entrada de cliente na rede --------------------------------------------*/
-		// 	else if(strcmp(dados[0], "REQ_ADD") == 0){
-
-			// char buf_to_send[BUFSZ];	   //Uma unica string para enviar
-      	    // memset(buf_to_send, 0, BUFSZ); //Memoria pra string
-            // strcat(buf_to_send, "REQ_ADD");
-			// size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
-			// if (count != strlen(buf_to_send) + 1) {
-        	// 	logexit("send");
-      		
-		// 	}
-		// }	/*--------------------------------- Mensagem de requisição de saída de cliente na rede --------------------------------------------*/
-		// 	else if(strcmp(dados[0], "REQ_DC") == 0){
-		// 	char *msg_req = "REQ_DC";
-      	// 	memcpy(dados[0], msg_req, sizeof(&msg_req));
-
-		// 	char buf_to_send[BUFSZ];	   //Uma unica string para enviar
-      	//     memset(buf_to_send, 0, BUFSZ); //Memoria pra string
-		// 	for (int i = 0; i < 2; i++) {
-        //     strcat(buf_to_send, dados[i]);
-        //     strcat(buf_to_send, " ");
-        //     }
-		// 	size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
-		// 	if (count != strlen(buf_to_send) + 1) {
-        // 		logexit("send");
-      	// 	}
-
-		//}
-
-	char buf[BUFSZ];
-	memset(buf, 0, BUFSZ);
-	printf("mensagem> ");
-	fgets(buf, BUFSZ-1, stdin);
-	size_t count = send(s, buf, strlen(buf)+1, 0);
-	if (count != strlen(buf)+1) {
+	size_t count = send(s, dadosDigitados, strlen(dadosDigitados)+1, 0);
+	if (count != strlen(dadosDigitados) + 1) {
 	logexit("send");
 	}
 
-	memset(buf, 0, BUFSZ);
-	unsigned total = 0;
-	while(1) {
-		count = recv(s, buf + total, BUFSZ - total, 0);
-		if (count == 0) {
-			// Connection terminated.
-			break;
-		}
-		total += count;
-	}
-	//close(s);
+	// memset(buf, 0, BUFSZ);
+	// unsigned total = 0;
+	// while(1) {
+	// 	count = recv(s, dadosDigitados + total, BUFSZ - total, 0);
+	// 	if (count == 0) {
+	// 		// Connection terminated.
+	// 		break;
+	// 	}
+	// 	total += count;
+	// }
+	// //close(s);
 	
+	char buf[BUFSZ];
+	memset(buf, 0, BUFSZ);
+	recv(s, buf, BUFSZ - 1, 0);
 	buf[strcspn(buf, "\n")] = '\0'; // Remover o caractere de nova linha
 	quebraString(buf, dadosDoServer, 20);
 
@@ -143,14 +132,21 @@ int main(int argc, char **argv) {
     	if (strcmp(dadosDoServer[0], "RES_ADD(") == 0) {	//Funciona, mas com o espaço quando o servidor envia a msg
 			int Id;											//Depois apagar a parte do terminal que imprime o RES_ADD( 1 ) no cliente
             sscanf(buf, "RES_ADD(%d)", &Id);
-
-        	//printf("New ID: Starlight Tower\n");
 			printf("New ID: %d\n", Id);
+		}
+		else if (strcmp(dadosDoServer[0], "ERROR_01") == 0) {
+        	printf("Client limit exceeded\n");
+		}
+		else if (strcmp(dadosDoServer[0], "ERROR_04") == 0) {
+        	printf("Client not found\n");
+		}
+		else if (strcmp(dadosDoServer[0], "OK_01") == 0) {
+        	printf("Successful disconnect\n");
 		}
 	}
 	
-	printf("received %u bytes\n", total);
-	puts(buf);
+	//printf("received %u bytes\n", total);
+	//puts(dadosDigitados);
 
 	exit(EXIT_SUCCESS);
 	}

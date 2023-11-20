@@ -17,11 +17,52 @@
 #define MAX_CLIENTS 10
 #define MIN_CLIENTS 2
 
+/* ---------------------- Configuração do Cliente ---------------------- */
 typedef struct client_data {
   int csock;
   //struct sockaddr_in addr;
   int id;
+
 } client_data;
+
+client_data clients_List[MAX_CLIENTS];
+//Status pro RTU
+char statusMensagem[BUFSZ];
+
+/* ---------------------- Configuração dos sensores do cliente ---------------------- */
+#define MIN_SENSORS 3
+#define MAX_SENSORS 10
+#define DADOS_SENSOR 100 // Tamanho máximo das informações
+
+int tabelaSensor[MAX_SENSORS][DADOS_SENSOR]; //Tabela
+
+//Inicializar dados aleatórios para os sensores
+void inicializa_sensores() {
+    // Seed para a função rand()
+    //srand(time(NULL));
+
+    // Gere aleatoriamente o número de sensores entre MIN_SENSORS e MAX_SENSORS
+    int num_sensors = rand() % (MAX_SENSORS - MIN_SENSORS + 1) + MIN_SENSORS;
+
+    // Adicione sensores à tabela
+    for (int i = 0; i < num_sensors; ++i) {
+        tabelaSensor[i][0] = i + 1;  // IDs começam de 1
+        tabelaSensor[i][1] = rand() % 100 + 1;  // Potência aleatória entre 1 e 100
+        tabelaSensor[i][2] = rand() % 100 + 1;  // Eficiência aleatória entre 1 e 100
+    }
+}
+
+/* ---------------------- Funções auxiliares ---------------------- */
+
+int localiza_Cliente(int client_Line) { // Percorrer lista para verificar a existência do cliente
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+        if (clients_List[i].id == client_Line) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 // typedef struct {
 //     int id;
@@ -139,7 +180,6 @@ int main(int argc, char **argv) {
 
     /* ---------------------------  Criando a lista de Clientes -------------------------- */
     //client_data *clients = (client_data *)calloc(MAX_CLIENTS, sizeof(client_data));
-    client_data clients_List[MAX_CLIENTS];
     for (int i = 0; i < MAX_CLIENTS; i++) {
     clients_List[i].id = 0;
     }
@@ -212,23 +252,63 @@ int main(int argc, char **argv) {
             clients_List[contador_Cliente].csock = csock;       //Adiciona socket ao vetor
             clients_List[contador_Cliente].id = id_Inicial + 1; //Atribui ID
             id_Inicial++;
+            
+            void inicializa_sensores();
+            printf("Dados gerados: %d %d \n", tabelaSensor[clients_List[contador_Cliente].id][1], tabelaSensor[clients_List[contador_Cliente].id][2]);
 
             //Envia resposta ao cliente
             snprintf(resposta_Server, sizeof(resposta_Server), "RES_ADD( %d )", clients_List[contador_Cliente].id);
-            //snprintf(resposta_Server, sizeof(resposta_Server), "RES_ADD");
             send(csock, resposta_Server, strlen(resposta_Server), 0);
 
             // Imprime no servidor
             printf("Client %d added\n", clients_List[contador_Cliente].id);
-
             contador_Cliente++;
-            printf("Conectados: %d", contador_Cliente); //APAGAR DEPOIS
+            printf("Conectados: %d \n", contador_Cliente); //APAGAR DEPOIS
 
             char buf[BUFSZ];
             memset(buf, 0, BUFSZ);
             size_t count = recv(csock, buf, BUFSZ - 1, 0);
             printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf); //APAGAR DEPOIS
+            
+            /* ------------------------------- Remove o cliente na lista de clientes ------------------------------ */
+            if (0 == strncmp(buf, "REQ_DC", 7)) {
+                int id_Teste = 3;
 
+                if(localiza_Cliente(id_Teste) == 1){
+
+                    // Remova o cliente da lista
+                    clients_List[id_Teste].id = 0;
+                    clients_List[id_Teste].csock = -1;
+                    printf("Client %d removed\n", id_Teste);
+                    contador_Cliente--;
+
+                    //Removido com sucesso
+                    memcpy(resposta_Server, "OK_01", sizeof("OK_01")); //Funciona mas ta bugado <---------------
+                    send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
+
+                    //PROVAVELMENTE FALTA UM CLOSE CSOCK
+
+                } else{
+
+                    memcpy(resposta_Server, "ERROR_04", sizeof("ERROR_04")); //Funciona mas ta bugado <---------------
+                    send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
+                    printf("Errou o número ae mano \n"); //APAGAR DEPOIS
+                
+                }
+            }
+            else if (0 == strncmp(buf, "REQ_LS", 7)) {
+            //     if (num_sensors > 0) {
+            // // Encontre o sensor com maior potência útil
+            // int sensor_max_pot = 0;
+            // for (int i = 1; i < num_sensors; ++i) {
+            //     if ((sensor_table[i].potencia * sensor_table[i].eficiencia_energetica) >
+            //         (sensor_table[sensor_max_pot].potencia * sensor_table[sensor_max_pot].eficiencia_energetica)) {
+            //         sensor_max_pot = i;
+            //     }
+            // }
+
+            }
+        
             }
             //close(csock);
 
