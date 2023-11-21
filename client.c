@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 		
 		/*--------------------------------- Mensagem de requisição de saída de cliente na rede -------------------------------------*/
 		if(strcmp(dados[0], "kill") == 0){
-			//char *msg_req = "REQ_DC";
+
       		char buf_to_send[BUFSZ];	   //Uma unica string para enviar
       	    memset(buf_to_send, 0, BUFSZ); //Memoria pra string
             strcat(buf_to_send, "REQ_DC");
@@ -101,6 +101,43 @@ int main(int argc, char **argv) {
       			}
 			
 			}
+		/*--------------------------------- Consultar Potência ÚTIL Local --------------------------------*/
+			else if(strcmp(dados[1], "localpotency") == 0){
+
+			char buf_to_send[BUFSZ];	   
+      	    memset(buf_to_send, 0, BUFSZ); 
+            strcat(buf_to_send, "REQ_LP");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+				if (count != strlen(buf_to_send) + 1) {
+        			logexit("send");
+      			}
+			
+			}
+		/*--------------------------------- Consultar Potência ÚTIL Externa --------------------------------*/
+			else if(strcmp(dados[1], "externalpotency") == 0){
+
+			char buf_to_send[BUFSZ];	   
+      	    memset(buf_to_send, 0, BUFSZ); 
+            strcat(buf_to_send, "REQ_EP");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+				if (count != strlen(buf_to_send) + 1) {
+        			logexit("send");
+      			}
+			
+			}
+
+		/*--------------------------------- Consultar Sensor com maior pot das DUAS redes --------------------------------*/
+			else if(strcmp(dados[1], "globalmaxsensor") == 0){
+
+			char buf_to_send[BUFSZ];	   
+      	    memset(buf_to_send, 0, BUFSZ); 
+            strcat(buf_to_send, "REQ_MS");
+			size_t count = send(s, buf_to_send, strlen(buf_to_send) + 1, 0);
+				if (count != strlen(buf_to_send) + 1) {
+        			logexit("send");
+      			}
+			
+			}
 		}
 
 	size_t count = send(s, dadosDigitados, strlen(dadosDigitados)+1, 0);
@@ -108,18 +145,6 @@ int main(int argc, char **argv) {
 	logexit("send");
 	}
 
-	// memset(buf, 0, BUFSZ);
-	// unsigned total = 0;
-	// while(1) {
-	// 	count = recv(s, dadosDigitados + total, BUFSZ - total, 0);
-	// 	if (count == 0) {
-	// 		// Connection terminated.
-	// 		break;
-	// 	}
-	// 	total += count;
-	// }
-	// //close(s);
-	
 	char buf[BUFSZ];
 	memset(buf, 0, BUFSZ);
 	recv(s, buf, BUFSZ - 1, 0);
@@ -128,7 +153,7 @@ int main(int argc, char **argv) {
 
 	//Recebe a string e imprime a mensagem
 	if (dadosDoServer[0] != NULL) {
-		printf("Recebido: %s \n", dadosDoServer[0]);
+		printf("Recebido: %s \n", dadosDoServer[0]); //APAGAR DEPOIS
     	if (strcmp(dadosDoServer[0], "RES_ADD(") == 0) {	//Funciona, mas com o espaço quando o servidor envia a msg
 			int Id;											//Depois apagar a parte do terminal que imprime o RES_ADD( 1 ) no cliente
             sscanf(buf, "RES_ADD(%d)", &Id);
@@ -142,6 +167,24 @@ int main(int argc, char **argv) {
 		}
 		else if (strcmp(dadosDoServer[0], "OK_01") == 0) {
         	printf("Successful disconnect\n");
+		}
+		else if (strcmp(dadosDoServer[0], "RES_ES") == 0) {
+         	//printf("Verificando dados...\n");
+			int i = 1;
+			while (dadosDoServer[i] != NULL) {
+    		printf("%s ", dadosDoServer[i]);
+    		i++;
+			}
+			printf("\n");
+		}
+		else if (strcmp(dadosDoServer[0], "RES_LP") == 0) {
+         	//printf("Verificando potência...\n");
+			int i = 1;
+			while (dadosDoServer[i] != NULL) {
+    		printf("%s ", dadosDoServer[i]);
+    		i++;
+			}
+			printf("\n");
 		}
 	}
 	

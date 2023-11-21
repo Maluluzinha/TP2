@@ -34,21 +34,14 @@ char statusMensagem[BUFSZ];
 #define MAX_SENSORS 10
 #define DADOS_SENSOR 100 // Tamanho máximo das informações
 
-int tabelaSensor[MAX_SENSORS][DADOS_SENSOR]; //Tabela
+typedef struct {
+    int id;
+    int potencia;
+    int eficiencia;
+} Sensor;
 
-//Inicializar dados aleatórios para os sensores
-void inicializa_sensores() {
-
-    // Gere aleatoriamente o número de sensores entre MIN_SENSORS e MAX_SENSORS
-    int num_sensors = rand() % (MAX_SENSORS - MIN_SENSORS + 1) + MIN_SENSORS;
-
-    // Adicione sensores à tabela
-    for (int i = 0; i < num_sensors; ++i) {
-        tabelaSensor[i][0] = i + 1;  // IDs começam de 1
-        tabelaSensor[i][1] = rand() % 100 + 1;  // Potência aleatória entre 1 e 100
-        tabelaSensor[i][2] = rand() % 100 + 1;  // Eficiência aleatória entre 1 e 100
-    }
-}
+//int tabelaSensor[MAX_SENSORS][DADOS_SENSOR]; //Tabela
+Sensor tabelaSensor[MAX_SENSORS];
 
 /* ---------------------- Funções auxiliares ---------------------- */
 
@@ -167,6 +160,7 @@ int main(int argc, char **argv) {
     char addrstr_p2p[BUFSZ];
     addrtostr( (struct sockaddr *)p2p_addr, addrstr_p2p, BUFSZ);
 //    printf("bound to %s, waiting connections\n", addrstr_p2p);
+    void inicializa_sensores();
 
     while (1) {
 
@@ -223,8 +217,23 @@ int main(int argc, char **argv) {
             clients_List[contador_Cliente].id = id_Inicial + 1; //Atribui ID
             id_Inicial++;
             
-            void inicializa_sensores();
-            printf("Dados gerados: %d %d \n", tabelaSensor[clients_List[contador_Cliente].id][1], tabelaSensor[clients_List[contador_Cliente].id][2]);
+            //Inicializa a tabela de sensor com valores aleatórios
+            //O número de sensores também é aleatório
+            int numSensores = rand() % (MAX_SENSORS - 2) + 3;
+
+            for (int i = 0; i < numSensores; i++) {
+            tabelaSensor[i].id = i;
+            tabelaSensor[i].potencia = rand() % 2001; // Valor entre 0 e 2000 W
+            tabelaSensor[i].eficiencia = rand() % 101; // Valor entre 0 e 100%
+            }
+            
+            //void imprimirDadosSensores();
+            printf("Tabela de Sensores:\n");
+            printf("ID\tPotência\tEficiência\n");
+
+            for (int i = 0; i < MAX_SENSORS; i++) {
+            printf("%d\t%d W\t\t%d%%\n", tabelaSensor[i].id, tabelaSensor[i].potencia, tabelaSensor[i].eficiencia);
+            }
 
             //Envia resposta ao cliente
             snprintf(resposta_Server, sizeof(resposta_Server), "RES_ADD( %d )", clients_List[contador_Cliente].id);
@@ -243,6 +252,7 @@ int main(int argc, char **argv) {
             /* ------------------------------- Remove o cliente na lista de clientes ------------------------------ */
             if (0 == strncmp(buf, "REQ_DC", 7)) {
                 int id_Teste = 3;
+                //int id_Teste = clients_List[contador_Cliente].id;
 
                 if(localiza_Cliente(id_Teste) == 1){
 
@@ -255,7 +265,7 @@ int main(int argc, char **argv) {
                     //Removido com sucesso
                     memcpy(resposta_Server, "OK_01", sizeof("OK_01")); //Funciona mas ta bugado <---------------
                     send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
-
+                    //close(csock);
                     //PROVAVELMENTE FALTA UM CLOSE CSOCK
 
                 } else{
@@ -266,19 +276,50 @@ int main(int argc, char **argv) {
                 
                 }
             }
+            /* ------------------------------- Calcula o sensor com maior potência útil ------------------------------ */
             else if (0 == strncmp(buf, "REQ_LS", 7)) {
-            //     if (num_sensors > 0) {
-            // // Encontre o sensor com maior potência útil
-            // int sensor_max_pot = 0;
-            // for (int i = 1; i < num_sensors; ++i) {
-            //     if ((sensor_table[i].potencia * sensor_table[i].eficiencia_energetica) >
-            //         (sensor_table[sensor_max_pot].potencia * sensor_table[sensor_max_pot].eficiencia_energetica)) {
-            //         sensor_max_pot = i;
-            //     }
-            // }
+            Sensor sensorMaiorPotencia;
+            int max_pot;
+            int pot_atual;
+
+            for (int i = 0; i < MAX_SENSORS; i++) {
+                pot_atual = (tabelaSensor[i].potencia * tabelaSensor[i].eficiencia)/100;
+                if (pot_atual > max_pot) {
+                    max_pot = pot_atual;
+                    sensorMaiorPotencia = tabelaSensor[i];
+                    }
+            }
+
+            printf("local 1 sensor %d: %d (%d %d)\n", sensorMaiorPotencia.id,
+                                                                    max_pot,
+                                                                    sensorMaiorPotencia.potencia,
+                                                                    sensorMaiorPotencia.eficiencia); //APAGAR DEPOIS
+            //Manda os dados pro cliente
+            sprintf(resposta_Server, "RES_ES local 1 sensor %d: %d (%d %d)\n", sensorMaiorPotencia.id,
+                                                                    max_pot,
+                                                                    sensorMaiorPotencia.potencia,
+                                                                    sensorMaiorPotencia.eficiencia);
+            send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
+
+
 
             }
-        
+            /* ------------------------------- Calcula a potência útil total LOCAL ------------------------------ */
+            else if (0 == strncmp(buf, "REQ_LP", 7)) {
+            int pot_atual;
+            int pot_util_total;
+
+            for (int i = 0; i < MAX_SENSORS; i++) {
+                pot_atual = (tabelaSensor[i].potencia * tabelaSensor[i].eficiencia)/100;
+                pot_util_total += pot_atual;
+            }
+
+            printf("local 1 potency: %d\n", pot_util_total); //APAGAR DEPOIS
+
+            sprintf(resposta_Server, "RES_LP local 1 potency: %d\n", pot_util_total);
+            send(csock, resposta_Server, strlen(resposta_Server) + 1, 0); // Manda o dado pro cliente
+
+            }              
             }
             //close(csock);
 
@@ -303,6 +344,8 @@ int main(int argc, char **argv) {
     
 
     // Free allocated memory
+    void inicializa_sensores();
+    void imprimirDadosSensores();
     free(clients_List);
 
         // sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
