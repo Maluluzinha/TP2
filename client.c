@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 	}
 	struct sockaddr *addr = (struct sockaddr *)(&storage);
 	if (0 != connect(s, addr, sizeof(storage))) {
-		logexit("connect");
+		logexit("connect_client");
 	}
 	
 	while(1){
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
 	//printf("received %u bytes\n", total);
 	//puts(dadosDigitados);
 
-	exit(EXIT_SUCCESS);
+	//exit(EXIT_SUCCESS);
 	}
 
 	}
