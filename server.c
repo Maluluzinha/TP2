@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
         logexit("P2P socket");
     }
 
+    
+
     /*---------------------- SERVER PASSIVO -----------------------*/
     if (0 != connect(p2p_socket, (struct sockaddr *)p2p_addr, sizeof(p2p_storage))) {
         // Se falhar, significa que não há conexão ativa, então imprime a mensagem e abre uma conexão passiva
@@ -108,7 +110,8 @@ int main(int argc, char **argv) {
     //printf("Servidor P2P aguardando conexão na porta 1\n");
 
     //TENTANDO CONECTAR:
-    struct sockaddr_storage cstorage;
+        while(1){
+            struct sockaddr_storage cstorage;
             struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
             socklen_t caddrlen = sizeof(cstorage);
             
@@ -117,26 +120,25 @@ int main(int argc, char **argv) {
                 logexit("accept_P2P_out");
             }
 
-            char caddrstr[BUFSZ];
-            addrtostr(caddr, caddrstr, BUFSZ);
-            printf("[log] P2P connection from %s\n", caddrstr);
-            printf("Peer %s connected\n", caddrstr);
-
             //CODE INIT HERE
             //Enviar a mensagem REQ_ADDPEER para o servidor Mj
-            snprintf(resposta_Server, sizeof(resposta_Server), "REQ_ADDPEER");
-            send(csock, resposta_Server, strlen(resposta_Server), 0);
-            printf("Sent REQ_ADDPEER message to peer Mj\n");
+            // snprintf(resposta_Server, sizeof(resposta_Server), "REQ_ADDPEER");
+            // send(csock, resposta_Server, strlen(resposta_Server), 0);
+            // if(send(csock, resposta_Server, strlen(resposta_Server), 0) == -1) {
+            //     logexit("Mensage Lost...");
+            // }
+            // printf("Sent REQ_ADDPEER message to peer Mj\n");
 
-            char resposta_Peer[BUFSZ];
-            recv(csock, resposta_Peer, sizeof(resposta_Peer), 0);
-            printf("[msg] %s\n", resposta_Peer);
-            
+            //  // Receber dados do peer
+            // if(recv(csock, resposta_Peer, sizeof(resposta_Peer), 0) == -1) {
+            // //    logexit("No mensage received from peer..");
+            // }
 
-     
+            // printf("Peer diz: %s", resposta_Peer);
+        }
+
+    
     }
-    //Até aqui "foi" M - Servidor 1 aguardando conexão na porta primaria - connect to peer: Transport endpoint is already connected
-    //CODE END HERE
 
     /* ---------------------- SERVER ATIVO, TENTA CONECTAR AO PASSIVO ---------------------- */
     //CODE INIT HERE
@@ -200,7 +202,23 @@ int main(int argc, char **argv) {
     char addrstr_p2p[BUFSZ];
     addrtostr( (struct sockaddr *)p2p_addr, addrstr_p2p, BUFSZ);
     //printf("bound to %s, waiting connections\n", addrstr_p2p);
-    void inicializa_sensores();
+
+    printf("Conexão P2P estabelecida com sucesso.\n");
+
+    // Lógica do peer
+
+    // char buffer[1024];
+    // memset(buffer, 0, sizeof(buffer));
+
+    // //Receber resposta do servidor P2P
+    // if (recv(s, buffer, sizeof(buffer), 0) == -1) {
+    // //    logexit("No mensage from passive..");
+    // }
+
+    // printf("Servidor P2P diz: %s\n", buffer);
+
+    // char mensagem[] = "Olá, servidor! Esta é uma mensagem do peer.";
+    // send(s, mensagem, sizeof(mensagem), 0);
 
     while (1) {
 
@@ -210,32 +228,8 @@ int main(int argc, char **argv) {
             logexit("select");
         }
 
+
         if (FD_ISSET(p2p_socket, &read_fds)) {
-            // struct sockaddr_storage cstorage;
-            // struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
-            // socklen_t caddrlen = sizeof(cstorage);
-            
-            // int csock = accept(p2p_socket, caddr, &caddrlen);
-            // if (csock == -1) {
-            //     logexit("accept_P2P_sel");
-            // }
-
-            // char caddrstr[BUFSZ];
-            // addrtostr(caddr, caddrstr, BUFSZ);
-            // printf("[log] P2P connection from %s\n", caddrstr);
-            // printf("Peer %s connected\n", caddrstr);
-
-            // //CODE INIT HERE
-            // //Enviar a mensagem REQ_ADDPEER para o servidor Mj
-            // snprintf(resposta_Server, sizeof(resposta_Server), "REQ_ADDPEER");
-            // send(csock, resposta_Server, strlen(resposta_Server), 0);
-            // printf("Sent REQ_ADDPEER message to peer Mj\n");
-
-            // // Adicionar o novo socket ao conjunto FD_SET
-            // FD_SET(csock, &read_fds);
-
-            // char resposta_Server[BUFSZ];
-            // recv(csock, resposta_Server, sizeof(resposta_Server), 0);
             
         }
         
@@ -395,10 +389,6 @@ int main(int argc, char **argv) {
             }
         }
     
-
-    // Free allocated memory
-    //void inicializa_sensores();
-    //void imprimirDadosSensores();
     free(clients_List);
 
     exit(EXIT_SUCCESS);
